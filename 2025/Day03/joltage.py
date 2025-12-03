@@ -4,6 +4,7 @@ import re
 import sys
 import itertools
 import math
+import multiprocessing as mp
 
 sys.setrecursionlimit(150000)
 
@@ -34,26 +35,42 @@ for bank in banks:
 print("Part1:", total)
 
 
-def part2_rec(bank, before, start, max_combo):
-	if len(before) == 12:
-		print("New MAX: ", before)
-		return int(before)
+def part2_recursive(bank, before, start_index, max_combo):
+	if start_index > len(bank):
+		return max_combo
 
-	partial_max_combo = int(str(max_combo)[0:len(before)+1])
-	print(partial_max_combo, " --")
-	for i, n in bank[start:]:
-		combo = int( (before+n) ) #.ljust(12, "0") )
-		print(combo, ">=", partial_max_combo )
-		if combo >= partial_max_combo:
-			max_combo = part2_rec(bank, before + str(n), i+1, int( (before+n).ljust(12, "0") ))
+	depth = len(before)
+	if depth == 12:
+		return before
+
+	# The option to skip the current digit
+	max_combo = part2_recursive(bank, before, start_index+1, max_combo)
+
+	# Or try all the current digits
+	for i, n in bank[start_index:]:
+		if int(n) >= int(max_combo[depth]):
+			max_combo = part2_recursive(bank, before+n, i+1, max_combo)
+	
 	return max_combo
 
 
-# Part 2 Ugly Do not attempt at home kids
+def bank_worker(bank):
+	return part2_recursive(bank, "", 0, "0"*12)
+
+# Part 2 
 total = 0
-for bank in banks:
-	max_combo = part2_rec(bank, "", 0, int("1"*12))
-	print(max_combo)
-	total += max_combo
+processes = max(1, mp.cpu_count() - 1)
+
+pool = mp.Pool(processes)
+
+try:
+	results_iter = pool.imap_unordered(bank_worker, banks)
+	for max_combo in results_iter:
+		total += int(max_combo)
+		print(total)
+
+finally:
+	pool.close()
+	pool.join()
 
 print("Part2:", total)
