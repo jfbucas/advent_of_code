@@ -14,11 +14,6 @@ for l in f.readlines():
 	l = l.strip()
 	banks.append( list(zip( range(len(l)), list(l))) )
 
-print(banks[0])
-#print(banks[0][5:])
-#exit()
-
-
 # Part 1
 total = 0
 for bank in banks:
@@ -29,48 +24,33 @@ for bank in banks:
 			if combo > max_combo:
 				max_combo = combo
 
-	#print(max_combo)
 	total += max_combo
 
 print("Part1:", total)
 
 
-def part2_recursive(bank, before, start_index, max_combo):
-	if start_index > len(bank):
-		return max_combo
-
-	depth = len(before)
-	if depth == 12:
+def part2_recursive(bank, before, index):
+	
+	if len(before) == 12:
 		return before
 
-	# The option to skip the current digit
-	max_combo = part2_recursive(bank, before, start_index+1, max_combo)
+	l = []
+	for i, n in bank[index:]:
+		l.append( (i,n) )
 
-	# Or try all the current digits
-	for i, n in bank[start_index:]:
-		if int(n) >= int(max_combo[depth]):
-			max_combo = part2_recursive(bank, before+n, i+1, max_combo)
-	
-	return max_combo
+	l.sort(key=lambda x: (x[1], -x[0]))
 
+	for i, n in reversed(l):
+		m = part2_recursive(bank, before+n, i+1)
+		if m != None:
+			return m
 
-def bank_worker(bank):
-	return part2_recursive(bank, "", 0, "0"*12)
+	return None
+
 
 # Part 2 
 total = 0
-processes = max(1, mp.cpu_count() - 1)
-
-pool = mp.Pool(processes)
-
-try:
-	results_iter = pool.imap_unordered(bank_worker, banks)
-	for max_combo in results_iter:
-		total += int(max_combo)
-		print(total)
-
-finally:
-	pool.close()
-	pool.join()
+for bank in banks:
+	total += int(part2_recursive(bank, "", 0))
 
 print("Part2:", total)
