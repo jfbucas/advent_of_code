@@ -49,14 +49,17 @@ for ras, raf in fresh_ranges:
 	total += raf-ras+1
 
 for [ras, raf], [rbs,rbf] in itertools.combinations(fresh_ranges, 2):
+	#print(ras,raf, "-", rbs, rbf, "ZZ")
 	if rbs >= ras and rbs <= raf:
 		if rbf >= ras and rbf <= raf:
 			#  ras----------------raf
 			#       rbs------rbf
+			print("_A", rbf-rbs+1)
 			overlap += rbf-rbs+1
 		else:
 			#  ras------raf
 			#       rbs------rbf
+			print("_B", raf-rbs+1)
 			overlap += raf-rbs+1
 
 	elif rbf >= ras and rbf <= raf:
@@ -66,8 +69,20 @@ for [ras, raf], [rbs,rbf] in itertools.combinations(fresh_ranges, 2):
 		else:
 			#      ras--------raf
 			#  rbs------rbf
+			print("_C", rbf-ras+1)
 			overlap += rbf-ras+1
+
+	elif rbs <= ras and rbf >= raf:
+		#      ras--------raf
+		#  rbs-----------------rbf
+		print("_D", raf-ras+1)
+		overlap += raf-ras+1
+
 	else:
-		print(ras,raf, rbs,rbf)
+		#               ras------raf
+		#  rbs-----rbf
+		#print("fin")
+		#print(ras,raf, rbs,rbf)
+		pass
 
 print("Part2:", total - overlap )
